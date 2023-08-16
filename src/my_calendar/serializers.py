@@ -9,8 +9,8 @@ from my_calendar.models import Event
 
 class EventSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
-    start_date = serializers.DateTimeField()
-    finish_date = serializers.DateTimeField()
+    start_date = serializers.DateTimeField(input_formats=['%d-%m-%Y %H:%M:%S'])
+    finish_date = serializers.DateTimeField(input_formats=['%d-%m-%Y %H:%M:%S'])
     reminder = serializers.CharField(max_length=255)
 
     def create(self, validated_data):
@@ -30,33 +30,33 @@ class EventSerializer(serializers.Serializer):
 
 
 
-
-class EventModel:
-    def __init__(self, title, content):
-        self.title = title
-        self.content = content
-
-class EventSerializer_TEST(serializers.Serializer):
-    title = serializers.CharField(max_length=255)
-    content = serializers.CharField()
-
-def encode():
-    event_1 = EventModel("Learn", "Learn DRF")
-    event_2 = EventModel("Clean", "Clean room")
-    model_sr = EventSerializer([event_1, event_2], many=True) # создаёт специальную коллекцию data и представляет в виде словаря
-    print(model_sr.data, type(model_sr.data), sep='\n')
-    json = JSONRenderer().render(model_sr.data) # преобразовываем словарь в байтовую строку
-    print(json)
-
-def decode():
-    stream = io.BytesIO(b'{"title":"Learn","content":"Learn DRF"}')
-    print(stream)
-    data = JSONParser().parse(stream)
-    print(data)
-    serializer = EventSerializer(data=data)
-    print(serializer)
-    serializer.is_valid()
-    print(serializer.validated_data)
+#
+# class EventModel:
+#     def __init__(self, title, content):
+#         self.title = title
+#         self.content = content
+#
+# class EventSerializer_TEST(serializers.Serializer):
+#     title = serializers.CharField(max_length=255)
+#     content = serializers.CharField()
+#
+# def encode():
+#     event_1 = EventModel("Learn", "Learn DRF")
+#     event_2 = EventModel("Clean", "Clean room")
+#     model_sr = EventSerializer([event_1, event_2], many=True) # создаёт специальную коллекцию data и представляет в виде словаря
+#     print(model_sr.data, type(model_sr.data), sep='\n')
+#     json = JSONRenderer().render(model_sr.data) # преобразовываем словарь в байтовую строку
+#     print(json)
+#
+# def decode():
+#     stream = io.BytesIO(b'{"title":"Learn","content":"Learn DRF"}')
+#     print(stream)
+#     data = JSONParser().parse(stream)
+#     print(data)
+#     serializer = EventSerializer(data=data)
+#     print(serializer)
+#     serializer.is_valid()
+#     print(serializer.validated_data)
 
 
 
