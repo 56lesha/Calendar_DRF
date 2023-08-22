@@ -1,10 +1,9 @@
+from collections import defaultdict
 from datetime import datetime
 
-from django.db.models import Q, Count
-from django.db.models.functions import TruncMonth
-from django.forms import model_to_dict
-from django.shortcuts import render
-from rest_framework.permissions import IsAdminUser
+
+from django.db.models.functions import TruncDay
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,7 +23,9 @@ class EventAPIView(APIView):
         if not data.get('finish_date'):
             start_date = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M:%S')
             finish_date = start_date.replace(hour=23, minute=59, second=59)
-            data['finish_date'] = finish_date.strftime("%d-%m-%Y %H:%M:%S")
+            data['finish_date'] = finish_date.strftime('%d-%m-%Y %H:%M:%S')
+
+
         serializer = EventSerializer(data=data)
         serializer.is_valid(raise_exception=True) #метод is_valid автоматически создаёт словарь validated_data
         serializer.save() #метод save автоматически вызывает метод create из сериализатора
@@ -61,24 +62,31 @@ class EventAPIView(APIView):
         return Response({"post": "delete post " + str(pk)})
 
 class EventDayAPIView(APIView):
-    def get(self, request, *args, **kwargs):
-        if kwargs:
-            year = kwargs.get('year', None)
-            month = kwargs.get('month', None)
-            day = kwargs.get('day', None)
+    def get(self, request, year, month, day):
+        events = Event.objects.filter(start_date__year=year,
+                                    start_date__month=month,
+                                    start_date__day=day)
+        serializer = EventSerializer(events, many=True)
+        data = serializer.data
 
-            if day:
-                events = Event.objects.filter(Q(start_date__year=year) &
-                                              Q(start_date__month=month) &
-                                              Q(start_date__day=day))
-                return Response({"events": EventSerializer(events, many=True).data})
+        return Response({'events': data})
 
-            else:
-                events = Event.objects.annotate(month=TruncMonth('start_date')).values('month').annotate(c=Count('id'))
-                return Response({"events": EventSerializer(events, many=True).data})
+class AggregatedEventsByMonthView(APIView):
+    def get(self, request, year, month):
+        aggregated_events = Event.objects.filter(start_date__year=year, start_date__month=month) \
+            .annotate(day=TruncDay('start_date')) \
+            .values('day', 'name')
 
+        day_events = defaultdict(list)
 
+        for event in aggregated_events:
+            day = event['day'].strftime('%Y-%m-%d')
+            description = event['name']
+            day_events[day].append(description)
 
+        aggregated_data = [
+            {"day": day, "events": events}
+            for day, events in day_events.items()
+        ]
 
-
-
+        return Response({"aggregated_data": aggregated_data})

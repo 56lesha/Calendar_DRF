@@ -22,7 +22,8 @@ from my_calendar.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/events/', EventAPIView.as_view()),
-    path('api/v1/events/<int:year>/<int:month>/<int:day>/', EventDayAPIView.as_view()),
-    path('api/v1/events/<int:year>/<int:month>/', EventDayAPIView.as_view()),
     path('api/v1/events/<int:pk>/', EventAPIView.as_view()),
+    path('api/v1/events/<int:year>/<int:month>/<int:day>/', EventDayAPIView.as_view()),
+    path('api/v1/events/<int:year>/<int:month>/', AggregatedEventsByMonthView.as_view()),
+
 ]
