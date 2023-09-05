@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'my_calendar',
     'rest_framework',
     'django_countries',
-    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
@@ -153,6 +152,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+AUTHENTICATION_BACKENDS = (
+        'my_calendar.backends.EmailModelBackend',
+    )
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -193,8 +195,4 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
-
-AUTHENTICATION_BACKENDS = (
-        'django.contrib.auth.backends.AllowAllUsersModelBackend',
-    )
 

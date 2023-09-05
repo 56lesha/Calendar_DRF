@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
+
 from django.db.models.functions import TruncDay
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -9,11 +9,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from my_calendar import serializers
 from my_calendar.models import Event
-from my_calendar.serializers import EventSerializer, UserRegistrationSerializer, LogoutSerializer
+from my_calendar.serializers import EventSerializer, UserRegistrationSerializer, TokenObtainPairSerializer
 
 
 # Create your views here.
@@ -113,50 +113,16 @@ class AggregatedEventsByMonthView(APIView):
         return Response({"aggregated_data": aggregated_data})
 
 
-
-User = get_user_model()
 class UserRegistrationAPIVIew(GenericAPIView):
     permission_classes = (AllowAny,)
-    serializer_class = serializers.UserRegistrationSerializer
+    serializer_class = UserRegistrationSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        token = RefreshToken.for_user(user)
-        data = serializer.data
-        data['tokens'] = {"refresh": str(token), "access": str(token.access_token)}
-        return Response(data, status=status.HTTP_201_CREATED)
-
-
-
-class UserLoginAPIView(GenericAPIView):
-    """
-    An endpoint to authenticate existing users using their email and password.
-    """
-
-    permission_classes = (AllowAny,)
-    serializer_class = serializers.UserLoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        serializer = serializers.UserSerializer(user)
-        token = RefreshToken.for_user(user)
-        data = serializer.data
-        data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
-        return Response(data, status=status.HTTP_200_OK)
-
-
-class UserLogoutAPIView(GenericAPIView):
-    serializer_class = LogoutSerializer
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        data = serializer.data
+        return Response(data, status=status.HTTP_201_CREATED)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = TokenObtainPairSerializer
