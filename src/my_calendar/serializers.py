@@ -5,11 +5,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as Jw
 from my_calendar.models import Event
 
 
-class EventSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255)
+class EventSerializer(serializers.ModelSerializer):
     start_date = serializers.DateTimeField(input_formats=['%d-%m-%Y %H:%M:%S'])
     finish_date = serializers.DateTimeField(input_formats=['%d-%m-%Y %H:%M:%S'])
-    reminder = serializers.CharField(max_length=255)
+    class Meta:
+        model = Event
+        fields = ['name', 'start_date', 'finish_date', 'reminder', 'user']
 
     def create(self, validated_data):
         return Event.objects.create(**validated_data)

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+
 from django_countries.fields import CountryField
 
 
@@ -18,6 +17,7 @@ class Event(models.Model):
         ('4', "1 day"),
         ('5', "1 week"),)
     reminder = models.CharField(max_length=255, choices=CHOICES)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

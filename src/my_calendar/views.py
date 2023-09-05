@@ -1,7 +1,8 @@
 from collections import defaultdict
 from datetime import datetime
 
-
+import jwt
+from django.contrib.auth.models import User
 from django.db.models.functions import TruncDay
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -14,6 +15,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from my_calendar import serializers
 from my_calendar.models import Event
 from my_calendar.serializers import EventSerializer, UserRegistrationSerializer, TokenObtainPairSerializer
+from src import settings
 
 
 # Create your views here.
@@ -21,23 +23,47 @@ class EventAPIView(APIView):
     permission_classes = [IsAuthenticated,]
 
     def get(self, request):
-        events = Event.objects.all()
-        return Response({"events": EventSerializer(events, many=True).data})
+        jwt_token = request.headers.get('Authorization').split(' ')[1]
+        try:
+            payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            events = Event.objects.filter(user=user_id)
+            return Response({"events": EventSerializer(events, many=True).data})
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'JWT token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        except jwt.DecodeError:
+            return Response({'error': 'JWT token is invalid'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
     def post(self, request):
-        data = request.data
-        if not data.get('finish_date'):
-            start_date = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M:%S')
-            finish_date = start_date.replace(hour=23, minute=59, second=59)
-            data['finish_date'] = finish_date.strftime('%d-%m-%Y %H:%M:%S')
+        jwt_token = request.headers.get('Authorization').split(' ')[1]
 
+        try:
+            payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
 
-        serializer = EventSerializer(data=data)
-        serializer.is_valid(raise_exception=True) #метод is_valid автоматически создаёт словарь validated_data
-        serializer.save() #метод save автоматически вызывает метод create из сериализатора
+            data = request.data
+            if not data.get('finish_date'):
+                start_date = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M:%S')
+                finish_date = start_date.replace(hour=23, minute=59, second=59)
+                data['finish_date'] = finish_date.strftime('%d-%m-%Y %H:%M:%S')
 
-        return Response({'post': serializer.data})
+            data['user'] = user_id
+            serializer = EventSerializer(data=data)
+            serializer.is_valid(raise_exception=True) #метод is_valid автоматически создаёт словарь validated_data
+            serializer.save() #метод save автоматически вызывает метод create из сериализатора
+
+            return Response({'post': serializer.data})
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'JWT token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return Response({'error': 'JWT token is invalid'}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
