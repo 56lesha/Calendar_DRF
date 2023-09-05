@@ -1,10 +1,15 @@
 import io
 
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from rest_framework import serializers
+
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from my_calendar.models import Event
+from my_calendar.models import Event, UserProfile
 
 
 class EventSerializer(serializers.Serializer):
@@ -23,6 +28,45 @@ class EventSerializer(serializers.Serializer):
         instance.reminder = validated_data.get("reminder", instance.reminder)
         instance.save()
         return instance
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email")
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "password")
+        extra_kwargs = {"password": {"write_only":True}}
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            RefreshToken(self.token).blacklist()
+        except TokenError:
+            self.fail("bad_token")
 
 
 
