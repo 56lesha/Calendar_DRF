@@ -21,8 +21,8 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from my_calendar.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/events/', EventAPIView.as_view()),
-    path('api/v1/events/<int:pk>/', EventDetailAPIView.as_view()),
+    path('api/v1/events/', EventAPIView.as_view(), name='events_list'),
+    path('api/v1/events/<int:pk>/', EventDetailAPIView.as_view(), name='event_detail'),
     path('api/v1/events/<int:year>/<int:month>/<int:day>/', EventDayAPIView.as_view()),
     path('api/v1/events/<int:year>/<int:month>/', AggregatedEventsByMonthView.as_view()),
     path('api/v1/registration/', UserRegistrationAPIVIew.as_view()),
