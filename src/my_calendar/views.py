@@ -28,7 +28,8 @@ class EventAPIView(APIView, EventHelpMixin):
 
     def post(self, request):
         data = request.data
-        data = super().auto_finish_date(data)
+        if not data.get('finish_date'):
+            data = super().auto_finish_date(data)
         data['user'] = super().get_user_id(request)
         serializer = EventSerializer(data=data)
         serializer.is_valid(raise_exception=True) #метод is_valid автоматически создаёт словарь validated_data

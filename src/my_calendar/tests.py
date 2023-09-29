@@ -49,24 +49,19 @@ class EventTests(APITestCase):
 
     def test_add_event(self):
         auth_header = 'Bearer ' + self.token
+        initial_count_data = Event.objects.count()
         headers = {'HTTP_AUTHORIZATION': auth_header}
-        data = {'name': 'Clean_home',
-                 'start_date': '2023-10-22 10:00:00',
-                 'finish_date': '2023-10-22 14:00:00',
-                 'reminder': '1',
-                 }
+        data = {
+                "name": "Clean home",
+                "start_date": "10-10-2023 10:00:00",
+                "finish_date": "10-10-2023 14:00:00",
+                "reminder": "1"
+                }
         response = self.client.post(reverse('events_list'), data=data, format='json', **headers)
+        final_count_data = Event.objects.count()
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(initial_count_data + 1, final_count_data)
 
-
-
-
-
-
-    def test_event_detail(self):
-        auth_header = 'Bearer ' + self.token
-        headers = {'HTTP_AUTHORIZATION': auth_header}
-        response = self.client.get(reverse("event_detail", kwargs={"pk":1}), **headers)
-        print(response.data)
 
 
 
