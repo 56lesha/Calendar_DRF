@@ -1,8 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
 
-import jwt
-from django.contrib.auth.models import User
 from django.db.models.functions import TruncDay
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -13,7 +10,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from my_calendar.models import Event
 from my_calendar.serializers import EventSerializer, UserRegistrationSerializer, TokenObtainPairSerializer
 from my_calendar.utils import EventHelpMixin
-from src import settings
 
 
 # Create your views here.
@@ -74,7 +70,6 @@ class EventDetailAPIView(APIView, EventHelpMixin):
         pk = instance.pk
         instance.delete()
         return Response({"post": "delete post " + str(pk)})
-
 
 
 
