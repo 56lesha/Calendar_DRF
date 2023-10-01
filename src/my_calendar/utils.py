@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import jwt
 from django.contrib.auth.models import User
@@ -38,6 +38,21 @@ class EventHelpMixin:
             finish_date = start_date.replace(hour=23, minute=59, second=59)
             data['finish_date'] = finish_date.strftime('%d-%m-%Y %H:%M:%S')
             return data
+
+    def set_reminder(self, data):
+        reminders = {
+            "1": 1,
+            "2": 10,
+            "3": 30,
+            "4": 24,
+            "5": 30
+        }
+        start_date = datetime.strptime(data["start_date"], '%d-%m-%Y %H:%M:%S')
+        reminder_time = start_date - timedelta(seconds=reminders[data["reminder"]]) - timedelta(hours=3)
+        return reminder_time
+
+
+
 
 
 

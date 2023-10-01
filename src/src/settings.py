@@ -195,3 +195,14 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+CELERY_BROKER_URL = 'redis://redis_calendar:6379'
+CELERY_RESULT_BACKEND = 'redis://redis_calendar:6379'
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = '56lesha@gmail.com'
+EMAIL_HOST_PASSWORD = 'uooxsjimsywxkzwy'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+

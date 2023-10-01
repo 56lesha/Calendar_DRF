@@ -1,5 +1,6 @@
 from collections import defaultdict
-
+from datetime import datetime, timedelta
+from django.contrib.auth.models import User
 from django.db.models.functions import TruncDay
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -9,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from my_calendar.models import Event
 from my_calendar.serializers import EventSerializer, UserRegistrationSerializer, TokenObtainPairSerializer
+from my_calendar.tasks import send_reminder_email
 from my_calendar.utils import EventHelpMixin
 
 
@@ -26,10 +28,17 @@ class EventAPIView(APIView, EventHelpMixin):
         data = request.data
         if not data.get('finish_date'):
             data = super().auto_finish_date(data)
-        data['user'] = super().get_user_id(request)
+        user_id = super().get_user_id(request)
+        data['user'] = user_id
         serializer = EventSerializer(data=data)
         serializer.is_valid(raise_exception=True) #метод is_valid автоматически создаёт словарь validated_data
         serializer.save() #метод save автоматически вызывает метод create из сериализатора
+
+
+        user_email = User.objects.get(id=user_id).email
+        reminder_time = super().set_reminder(data)
+        send_reminder_email.apply_async(args=[data, user_email], eta=reminder_time)
+        print(datetime.utcnow())
         return Response({'post': serializer.data})
 
 

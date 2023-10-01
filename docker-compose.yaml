@@ -27,3 +27,18 @@ services:
       - ./backups:/backups
     ports:
       - "5432:5432"
+
+  redis_calendar:
+    image: redis:latest
+    container_name: redis_calendar_drf
+
+  celery_calendar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_calendar_drf
+    volumes:
+      - ./src:/src
+#    ports:
+#      - 5555:5555
+    command: bash -c "celery -A src worker -c 5 -l info"
