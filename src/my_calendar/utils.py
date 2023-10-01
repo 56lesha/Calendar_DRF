@@ -42,13 +42,13 @@ class EventHelpMixin:
     def set_reminder(self, data):
         reminders = {
             "1": 1,
-            "2": 10,
-            "3": 30,
+            "2": 2,
+            "3": 4,
             "4": 24,
-            "5": 30
+            "5": 168
         }
         start_date = datetime.strptime(data["start_date"], '%d-%m-%Y %H:%M:%S')
-        reminder_time = start_date - timedelta(seconds=reminders[data["reminder"]]) - timedelta(hours=3)
+        reminder_time = start_date - timedelta(hours=reminders[data["reminder"]]) - timedelta(hours=3)
         return reminder_time
 
 
